@@ -1,2 +1,2 @@
-# JAMK-harjoitustyo
+# Painovoimasimulaatio
  
