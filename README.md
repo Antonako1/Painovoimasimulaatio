@@ -1,0 +1,2 @@
+# JAMK-harjoitustyo
+ 
