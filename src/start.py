@@ -38,8 +38,7 @@ def mainLoop():
 #-------------------------------------------------------------
             case variables.GameStates.INITIALIZE_MAINGAME:
                 # Samat homma kun main menussa
-                if not isinstance(variables.main_game, Main_Game):
-                    variables.main_game = Main_Game()
+                variables.main_game = Main_Game()
 
                 variables.current_state = variables.GameStates.PLAY_GAME # Menee peliin
                 pass
@@ -47,15 +46,16 @@ def mainLoop():
             case variables.GameStates.PLAY_GAME:
                 # Ottaa aktiivisen datan ja
                 # Piirtää peliä
-
+                variables.mouse = pygame.mouse.get_pos()
                 variables.main_game.run()
+                pygame.display.flip()
                 pass
         pass
     pass
 
 def initialize():
     pygame.init()
-    pygame.display.set_caption("Harjoitustyö")
+    pygame.display.set_caption("Painovoimasimulaatio")
     # Fontti:               font style,    size
     variables.font = pygame.font.SysFont('monospace', 16)
 

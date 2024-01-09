@@ -32,8 +32,45 @@ CLOCK = pygame.time.Clock()
 # fontti
 font = None
 
+# Deltatime tikki
+deltatime = None
+
+# Sekunnit
+seconds = None
+
 # Aktiivinen planeetta
 active_planet = "earth" # Default
 
 # Aktiivisen planeetan data
 active_data = None
+
+# Onko peli pausella
+active_pause = False
+#
+#
+###########################
+#
+#       Kakkospaneeli
+#
+# Onko kakkospaneeli päällä
+active_secondary_panel = False
+secondary_panel = None # Kakkospaneelin luokka
+secondary_panel_width = 300 # sen leveys
+radio_buttons = None
+
+# Pitää Radio_Button luokkaan lisätä match caseen jos näitä lisää
+active_air_resistance = True
+active_ground_friction = True
+active_wind_resistance = True
+active_ceiling = False # Default
+
+# Tekstikentät ja niitten arvot
+input_fields_1 = None
+
+# Nappien ja muitten resetointi
+def reset_form():
+    global active_air_resistance, active_ground_friction, active_wind_resistance, active_ceiling
+    active_air_resistance = True
+    active_ground_friction = True
+    active_wind_resistance = True
+    active_ceiling = False
