@@ -149,7 +149,7 @@ class Text_Field:
         # Animaatio mukana
         _info_txt_surface = variables.font.render(self.info_str, True, self.text_colour)
         # Jos teksti menee yli 
-        if _info_txt_surface.get_width() + _info_x >= variables.screen_dict["width"] - 10:
+        if _info_txt_surface.get_width() + _info_x >= variables.screen_dict["width"] - variables.secondary_panel_text_width - 10:
             # Tekee uuden stringin joka kirjoitetaan
             _info_str_substr = self.construct_new_string(self.info_str, self.info_animation, 999)
             _info_txt_surface = variables.font.render(_info_str_substr, True, self.text_colour)
@@ -288,7 +288,7 @@ class Ball:
     # Maan kitka
     # Joustavuus
     # Pallon väri
-    def __init__(self, x:int, y:int, radius:int, mass:int, vertical_velocity:int, horizontal_velocity:int, ground_friction:float, elasticity:float , colour:tuple) -> None:
+    def __init__(self, x:int, y:int, radius:int, mass:int, vertical_velocity:int, horizontal_velocity:int, elasticity:float , colour:tuple) -> None:
         self.radius = radius
         self.x = x
         self.y = y + radius # Yläkulmaan
@@ -297,7 +297,6 @@ class Ball:
         self.vertical_velocity = vertical_velocity
         self.horizontal_velocity = horizontal_velocity
         self.elasticity = elasticity
-        self.ground_friction = ground_friction
         pass
     def draw(self):
         # Jos pausella, ei liikuteta
@@ -349,7 +348,7 @@ class Ball:
 
         # Lisätään maan kitka jos se koskettaa maan pintaa ja toggle on päällä
         if self.y >= variables.screen_dict["height"] - self.radius and variables.active_ground_friction:
-            self.horizontal_velocity *= self.ground_friction
+            self.horizontal_velocity *= variables.active_data["ground_friction"]
             pass
 
         pass
@@ -403,7 +402,7 @@ class Secondary_Panel:
         #
         # Leveys, korkes, x ja y
         # 300xKorkeus oikeassa nurkassa
-        self.width = variables.secondary_panel_width
+        self.width = variables.secondary_panel_width - variables.secondary_panel_text_width
         self.height = variables.screen_dict["height"]
         self.x = variables.screen_dict["width"] - variables.secondary_panel_width
         self.y = 0
@@ -426,7 +425,7 @@ class Secondary_Panel:
         # Inputti kentät
         variables.input_fields_1 = []
         _multiply += 1
-        variables.input_fields_1.append(Text_Field(" Gravity", variables.active_data["gravity"], self.x + 15, self.y+10*_multiply, 100, 25, 9))
+        variables.input_fields_1.append(Text_Field(" Gravity asdsadsdaasdasdasdsadsad", variables.active_data["gravity"], self.x + 15, self.y+10*_multiply, 100, 25, 9))
         _multiply += 3
         variables.input_fields_1.append(Text_Field(" Air density",variables.active_data["air_density"], self.x + 15, self.y+10*_multiply, 100, 25, 9))
         _multiply += 3
@@ -437,7 +436,13 @@ class Secondary_Panel:
         self.line_2_y_pos = _multiply # 2. viivan y
 
         # Napit lisää pallo, muokkaa palloa
+        variables.form_button_row_1 = []
+        _multiply += 2
+        self.button_row_1_y = _multiply
+        variables.form_button_row_1.append(Button("Add new ball", (150,150,150), (100,100,100), (0, 255, 102)))
+        variables.form_button_row_1.append(Button("Edit cur. ball", (150,150,150), (100,100,100), (0, 255, 102)))
 
+        # Editoi entisen pallon tietoja
         pass
     def draw(self):
         #
@@ -463,5 +468,11 @@ class Secondary_Panel:
         pygame.draw.line(variables.SCREEN, (150,150,150), (self.x, self.y + 10*self.line_2_y_pos), (variables.screen_dict["width"], self.y + 10*self.line_2_y_pos), 2)
         # Valinta napit:
         # Lisää uusi pallo, muokkaa olemassa olevaa palloa.
+        for i, button in enumerate(variables.form_button_row_1):
+            button.y = self.y + (10 * self.button_row_1_y)
+            button.x = (self.x + 10) + (140 * i)
+            is_hovered = button.rect.collidepoint(variables.mouse[0], variables.mouse[1])
+            button.draw(is_hovered)
+            pass
         pass
     pass

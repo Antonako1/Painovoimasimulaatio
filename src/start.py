@@ -38,6 +38,7 @@ def mainLoop():
 #-------------------------------------------------------------
             case variables.GameStates.INITIALIZE_MAINGAME:
                 # Samat homma kun main menussa
+                variables.main_game = None
                 variables.main_game = Main_Game()
 
                 variables.current_state = variables.GameStates.PLAY_GAME # Menee peliin

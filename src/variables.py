@@ -55,7 +55,8 @@ active_pause = False
 # Onko kakkospaneeli päällä
 active_secondary_panel = False
 secondary_panel = None # Kakkospaneelin luokka
-secondary_panel_width = 300 # sen leveys
+secondary_panel_width = 500 # sen leveys
+secondary_panel_text_width = 200 # sen leveys
 radio_buttons = None
 
 # Pitää Radio_Button luokkaan lisätä match caseen jos näitä lisää
@@ -66,6 +67,15 @@ active_ceiling = False # Default
 
 # Tekstikentät ja niitten arvot
 input_fields_1 = None
+
+# Nappilista
+form_button_row_1 = []
+form_button_row_2 = []
+
+# Lisäpaneelin napeille
+active_add_new_ball = False
+active_edit_current_ball = True
+active_ball_index = 0 # TODO
 
 # Nappien ja muitten resetointi
 def reset_form():

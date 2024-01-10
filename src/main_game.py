@@ -39,9 +39,10 @@ class Main_Game:
             variables.screen_dict["width"] / 2, 20, # X, Y
             10, 10, # Radius, mass,
             100, 150, # Vertical-, horizontal velocity
-            0.98, 0.8, # Ground friction, elasticity
+            0.8, # elasticity
             (255,0,0))) # Colour
     def run(self):
+        print(self.balls[0].x, self.balls[0].y, self.balls[0].vertical_velocity, self.balls[0].horizontal_velocity)
         # Tausta
         variables.SCREEN.fill((100, 100, 100))
         # Eventit
@@ -61,7 +62,10 @@ class Main_Game:
                     variables.active_pause = not(variables.active_pause)
                 if event.key == pygame.K_r: # Restarttia
                     self.start_ball()
+                    # variables.secondary_panel = None
                     variables.reset_form()
+                    variables.seconds = 0
+                    variables.deltatime = 0
                     variables.current_state = variables.GameStates.INITIALIZE_MAINGAME
                 if event.key == pygame.K_h:
                     variables.reset_form()
