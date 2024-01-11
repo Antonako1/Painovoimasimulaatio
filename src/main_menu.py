@@ -84,6 +84,10 @@ class Main_Menu:
         # Aktiivisen planeetan nimi
         if target != "Start simulation":
             variables.active_planet = target
+            if target == "custom":
+                variables.main_menu_custom_active = True
+            else:
+                variables.main_menu_custom_active = False
 
         
         match target:

@@ -14,10 +14,8 @@
 
 Valitse planeetta ja paina "Start simulation".
 
-O:ta painamalla näet lisätietoja, voit lisätä uusia palloja tai muokata edellisiä klikkaamalla niitä.
+O:ta painamalla näet lisätietoja, voit lisätä uusia palloja tai muokata edellisiä klikkaamalla niitä ja muokkaamalla niiden tietoja paneelissa. Enterillä tallenetaan tiedot jos niitä muokkaa
 
-12. planeetta on "Custom planeetta" johon voit itse laittaa arvoja kuten:
-    painovoima, ilmantiheys, maan kitka ja muuta
 
 ### Käynnistäminen
 

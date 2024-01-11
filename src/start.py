@@ -38,9 +38,7 @@ def mainLoop():
 #-------------------------------------------------------------
             case variables.GameStates.INITIALIZE_MAINGAME:
                 # Samat homma kun main menussa
-                variables.main_game = None
                 variables.main_game = Main_Game()
-
                 variables.current_state = variables.GameStates.PLAY_GAME # Menee peliin
                 pass
 
@@ -58,7 +56,7 @@ def initialize():
     pygame.init()
     pygame.display.set_caption("Painovoimasimulaatio")
     # Fontti:               font style,    size
-    variables.font = pygame.font.SysFont('monospace', 16)
+    variables.font = pygame.font.SysFont('monospace', 15)
 
 
 if __name__ == "__main__":
