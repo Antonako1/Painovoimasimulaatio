@@ -6,5 +6,4 @@ data = {
     "wind_direction": 0, # tuulen suunta keskeltä
     "mass": 1, # Massa
     "radius": 2, # Halkaisija
-    "gravitational_constant": 3, # Nm^2/kg^2
 }

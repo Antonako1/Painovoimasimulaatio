@@ -88,6 +88,7 @@ form_button_row_2 = []
 active_add_new_ball = False
 active_edit_current_ball = True
 active_ball_index = 0
+active_zero_g = False
 
 # Editointilista
 input_fields_2 = []
@@ -127,3 +128,4 @@ def reset_form():
     active_wind_resistance = True
     active_ceiling = True
     active_advanced_ball = False
+    active_zero_g = False

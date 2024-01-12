@@ -355,6 +355,10 @@ class Text_Line:
                 self.value = f" {variables.original_data['air_density']}"
             case " planet:":
                 self.value = f" {variables.active_planet}"
+            case " planet radius:":
+                self.value = f" {variables.original_data['radius']} km"
+            case " planet mass:":
+                self.value = f" {variables.original_data['mass']} kg"
             case " wind experienced:":
                 self.value = f" {variables.wind_experienced}"
             case " gravity experienced:":
@@ -427,6 +431,8 @@ class Radio_Button:
     def update_variables(self, case):
         if case == "out":
             match self.text:
+                case "Zero gravity":
+                    self.active = variables.active_zero_g
                 case "Air resistance":
                     self.active = variables.active_air_resistance
                 case "Ground friction":
@@ -441,6 +447,8 @@ class Radio_Button:
                     self.active = variables.active_advanced_ball
         elif case == "in":
             match self.text:
+                case "Zero gravity":
+                    variables.active_zero_g = self.active
                 case "Air resistance":
                     variables.active_air_resistance = self.active
                 case "Ground friction":
@@ -482,6 +490,7 @@ class Ball:
         self.elasticity = elasticity
         self.freeze = False
         self.rigid = rigid
+        self.hit = False
         pass
     def draw(self):
         # Jos pausella, ei liikuteta
@@ -494,8 +503,8 @@ class Ball:
         if variables.active_advanced_ball and variables.active_data["gravity"] >= 4.5 and self.rigid < 1:
             deformation = self.gravitational_deformation()
             y_compenstation = 0
-            if deformation * 2 > 1.090:
-                deformation = 1.090
+            # if deformation * 2 > 1.090:
+            #     deformation = 1.090
 
             pygame.draw.ellipse(variables.SCREEN, _ball_colour, (self.x, self.y - y_compenstation, 2 * self.radius, deformation * 2))
         else:
@@ -575,7 +584,7 @@ class Ball:
             ratio_y = (Vobject_y - Vwind_y) / v
             
             self.horizontal_velocity += ratio_x * Awind * wind_influence
-            self.vertical_velocity += ratio_y * Awind * wind_influence
+            self.vertical_velocity -= ratio_y * Awind * wind_influence
 
             variables.wind_experienced = (ratio_x * Awind * wind_influence) + (ratio_y * Awind * wind_influence)
             pass
@@ -608,34 +617,36 @@ class Ball:
             pass
             
         # Lisätään painovoiman ja ilmanvastuksen vaikutus
-        """
-        newtonin painovoimalaki
-        F = (G * m1 * m2) / (r^2)
+        _velocity_gravitational_effect = 0
+        if not variables.active_zero_g:
+            """
+            newtonin painovoimalaki
+            F = (G * m1 * m2) / (r^2)
 
-        g = F/m1
+            g = F/m1
 
-        F = voima
-        G = Pysyvä painovoima
-        g = painovoima jonka kappale kokee
-        m1, m2 = kappaleen massa, kappaleen massa joka vetää puoleensa
-        r = Välinen etäisyys
+            F = voima
+            G = Pysyvä painovoima
+            g = painovoima jonka kappale kokee
+            m1, m2 = kappaleen massa, kappaleen massa joka vetää puoleensa
+            r = Välinen etäisyys
 
-        https://en.wikipedia.org/wiki/Gravity_of_Earth#Conventional_value
+            https://en.wikipedia.org/wiki/Gravity_of_Earth#Conventional_value
 
-        Calculating the gravity at Earth's surface using the average radius of Earth (6,371 kilometres (3,959 mi)),
-        [10] the experimentally determined value of the gravitational constant, and the Earth mass of 5.9722 ×1024 
-        kg gives an acceleration of 9.8203 m/s2,[11] slightly greater than the standard gravity of 9.80665 m/s2
+            Calculating the gravity at Earth's surface using the average radius of Earth (6,371 kilometres (3,959 mi)),
+            [10] the experimentally determined value of the gravitational constant, and the Earth mass of 5.9722 ×1024 
+            kg gives an acceleration of 9.8203 m/s2,[11] slightly greater than the standard gravity of 9.80665 m/s2
 
-        TULOS: 9.819860885194819 ≈ 9.8203 (melkeen sama)
-        """
-        # Planeetan massa
-        mass_celestial_body = variables.active_data["mass"]
-        # Painovoiman vetovoima
-        gravitational_force = variables.gravitational_constant * self.mass * mass_celestial_body / variables.active_data["radius"]**2
-        # Painovoiman kiihtyvyys vauhti
-        gravitational_acceleration = gravitational_force / self.mass
-        # Lopullinen muuttuja
-        _velocity_gravitational_effect = gravitational_acceleration
+            TULOS: 9.819860885194819 ≈ 9.8203 (melkeen sama)
+            """
+            # Planeetan massa
+            mass_celestial_body = variables.active_data["mass"]
+            # Painovoiman vetovoima
+            gravitational_force = variables.gravitational_constant * self.mass * mass_celestial_body / variables.active_data["radius"]**2
+            # Painovoiman kiihtyvyys vauhti
+            self.gravitational_acceleration = gravitational_force / self.mass
+            # Lopullinen muuttuja
+            _velocity_gravitational_effect = self.gravitational_acceleration
 
         # Lisätään ilman vastus
         variables.drag_experienced = 0
@@ -652,6 +663,11 @@ class Ball:
             self.horizontal_velocity *= variables.active_data["ground_friction"]
             variables.drag_experienced += variables.active_data["ground_friction"]
             pass
+
+        # if self.hit:
+        #     self.horizontal_velocity *= self.elasticity
+        #     self.vertical_velocity *= self.elasticity
+        #     self.hit = False
         pass
 
     def gravitation_drag(self) -> float:
@@ -680,7 +696,8 @@ class Ball:
         f_drag = ((1/2) * variables.active_data["air_density"] * self.drag_coefficient * self.area) * (self.vertical_velocity**2)
         # return f_drag / self.mass # ?
         # Painovoiman voima | N
-        f_gravity = (self.mass / 1000) * variables.active_data["gravity"]
+        # f_gravity = (self.mass / 1000) * variables.active_data["gravity"]
+        f_gravity = (self.mass / 1000) * self.gravitational_acceleration
 
         # Netto voima
         f_net = f_gravity - f_drag
@@ -747,6 +764,8 @@ class Secondary_Panel:
         # Radionapit
         variables.radio_buttons = []
         _multiply = 1
+        variables.radio_buttons.append(Radio_Button("Zero gravity", self.x + 15, self.y + 10*_multiply)) 
+        _multiply += 3
         variables.radio_buttons.append(Radio_Button("Air resistance", self.x + 15, self.y + 10*_multiply)) 
         _multiply += 3
         variables.radio_buttons.append(Radio_Button("Ground friction", self.x + 15, self.y + 10*_multiply))
@@ -764,8 +783,8 @@ class Secondary_Panel:
         # Inputti kentät
         variables.input_fields_1 = []
         _multiply += 1
-        variables.input_fields_1.append(Text_Field(" Gravity", variables.active_data["gravity"], self.x + 5, self.y+10*_multiply, 100, 25, 9))
-        _multiply += 3
+        # variables.input_fields_1.append(Text_Field(" Gravity", variables.active_data["gravity"], self.x + 5, self.y+10*_multiply, 100, 25, 9))
+        # _multiply += 3
         variables.input_fields_1.append(Text_Field(" Air density",variables.active_data["air_density"], self.x + 5, self.y+10*_multiply, 100, 25, 9))
         _multiply += 3
         variables.input_fields_1.append(Text_Field(" Ground friction",variables.active_data["ground_friction"], self.x + 5, self.y+10*_multiply, 100, 25,9))
@@ -854,6 +873,8 @@ class Secondary_Panel:
         self.text_array = []
         self.text_line_x = variables.screen_dict["width"] - variables.secondary_panel_text_width
         self.text_array.append(Text_Line(" planet:", self.text_line_x, 0))
+        self.text_array.append(Text_Line(" planet mass:", self.text_line_x, 0))
+        self.text_array.append(Text_Line(" planet radius:", self.text_line_x, 0))
         self.text_array.append(Text_Line(" paused:", self.text_line_x, 0))
         self.text_array.append(Text_Line(" mouse pos:", self.text_line_x, 0))
         self.text_array.append(Text_Line(" balls:", self.text_line_x, 0))
@@ -863,7 +884,7 @@ class Secondary_Panel:
         self.text_array.append(Text_Line("", self.text_line_x, 0))
         self.text_array.append(Text_Line("-------------------------------", self.text_line_x, 0))
         self.text_array.append(Text_Line("", self.text_line_x, 0))
-        self.text_array.append(Text_Line(" current ball stats:", self.text_line_x, 0))
+        self.text_array.append(Text_Line(" current stats:", self.text_line_x, 0))
         self.text_array.append(Text_Line("", self.text_line_x, 0))
         self.text_array.append(Text_Line(" gravity experienced:", self.text_line_x, 0))
         self.text_array.append(Text_Line(" wind experienced:", self.text_line_x, 0))

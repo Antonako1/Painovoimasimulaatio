@@ -403,6 +403,7 @@ class Main_Game:
                     if distance < r1 + r2 and distance > 0:
                         try:
                             _new_vector = (v1 - v2).normalize()
+                            # Joustavuudella kertominen
 
                             ball1_movement = pygame.math.Vector2(ball1.horizontal_velocity, ball1.vertical_velocity).reflect(_new_vector)
                             ball2_movement = pygame.math.Vector2(ball2.horizontal_velocity, ball2.vertical_velocity).reflect(_new_vector)
@@ -410,24 +411,18 @@ class Main_Game:
                             ball1.horizontal_velocity, ball1.vertical_velocity = ball1_movement.x, ball1_movement.y
                             ball2.horizontal_velocity, ball2.vertical_velocity = ball2_movement.x, ball2_movement.y
 
-                            try:
-                                # TODO Alkaa lähtee eri suuntiin
-                                ball1.x += (_new_vector.x * ((r1 + r2) - distance) / _new_vector.x * variables.deltatime)
-                                ball1.y += (_new_vector.y * ((r1 + r2) - distance) / _new_vector.y * variables.deltatime)
-                                ball2.x += (_new_vector.x * ((r1 + r2) - distance) / _new_vector.x * variables.deltatime)
-                                ball2.y += (_new_vector.y * ((r1 + r2) - distance) / _new_vector.y * variables.deltatime)
-
-                            except:
-                                pass
-
-                            # Joustavuudella kertominen
-                            ball1.vertical_velocity *= ball1.elasticity
-                            ball1.horizontal_velocity *= ball1.elasticity
-                            ball2.vertical_velocity *= ball2.elasticity
-                            ball2.horizontal_velocity *= ball2.elasticity
-
-
-                            # Update positions
+                            # ball1.vertical_velocity *= ball1.elasticity
+                            # ball1.horizontal_velocity *= ball1.elasticity
+                            # ball2.vertical_velocity *= ball2.elasticity
+                            # ball2.horizontal_velocity *= ball2.elasticity
+                            # for ball in variables.balls:
+    # if ball.hit:
+                            #ball1.hit true
+                            #ball2.hit true
+    #     ball.horizontal_velocity *= ball.elasticity
+    #     ball.vertical_velocity *= ball.elasticity
+    #     ball.hit = False
+                            
 
                         except ValueError:
                             print("Error normalizing vector of zero length:", ValueError)
