@@ -1,4 +1,4 @@
-import pygame, random
+import pygame
 from enum import Enum, auto
 #
 # State-machine
@@ -16,6 +16,9 @@ class GameStates(Enum):
 current_state = None
 main_menu = None
 main_menu_custom_active = False
+custom_planet_mass = 0
+custom_planet_radius = 0
+custom_planet_g = 0
 main_game = None
 
 gravitational_constant = 6.674e-11 # Nm^2/kg^2
@@ -122,7 +125,7 @@ drag_experienced = None
 
 # Nappien ja muitten resetointi
 def reset_form():
-    global active_advanced_ball, active_air_resistance, active_ground_friction, active_wind_resistance, active_ceiling
+    global active_advanced_ball, active_air_resistance, active_ground_friction, active_wind_resistance, active_ceiling, active_zero_g
     active_air_resistance = True
     active_ground_friction = True
     active_wind_resistance = True

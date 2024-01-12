@@ -10,15 +10,19 @@ class Main_Game:
         try:
             data_name = f"planet_data.{variables.active_planet}" # Datan nimi
             data_dict = importlib.import_module(data_name) # Importtaa datan 
-            variables.active_data = data_dict.data.copy() # Tekee siitä kopion ja tallentaa sen
-            variables.original_data = data_dict.data.copy() # Tekee siitä kopion ja tallentaa sen
+            copy = data_dict.data.copy()
+            if variables.active_planet == "custom":
+                copy["gravity"] = variables.custom_planet_g
+                copy["mass"] = variables.custom_planet_mass
+                copy["radius"] = variables.custom_planet_radius # ???
+            variables.active_data = copy # Tekee siitä kopion ja tallentaa sen
+            variables.original_data = copy # Tekee siitä kopion ja tallentaa sen
         except ImportError: # Jos importti ei toimi
             # Virhe viesti ja ohjelmasta poistuminen
-            print(f"Error: Could not import planet data for {variables.active_planet}")
+            print(f"Error: Could not import planet data for {variables.active_planet}", ImportError)
             variables.current_state = variables.GameStates.MAINMENU_WAITINPUT
             pygame.quit()
             sys.exit()
-
         # Sekunteihin
         self.seconds = 0
         self.start_ticks = pygame.time.get_ticks()
@@ -32,14 +36,14 @@ class Main_Game:
         variables.secondary_panel = Secondary_Panel()
         #
         pass
-    def start_ball(self): # TODO KORJAA RESTART
+    def start_ball(self):
         # Palloille lista
         variables.balls = []
         #
         # Alotuspallot
         for i in range(2):
             variables.balls.append(Ball(
-                random.randint(0, variables.screen_dict["width"]) , random.randint(0, 100), # X, Y
+                random.randint(variables.screen_dict["middle_x"] - 100, variables.screen_dict["middle_x"] + 100) , random.randint(0, 100), # X, Y
                 random.randint(10, 30), 10, # Radius, mass,
                 random.randint(10, 300), random.randint(-300, 300), # Vertical-, horizontal velocity
                 0.8, 0.7, # elasticity, rigidness
@@ -65,8 +69,10 @@ class Main_Game:
                 if event.key == pygame.K_r: # Restarttia
                     variables.balls.clear()
                     variables.reset_form()
+                    variables.active_ball_index = 0
                     variables.current_state = variables.GameStates.INITIALIZE_MAINGAME
                 if event.key == pygame.K_h:
+                    variables.active_ball_index = 0
                     variables.reset_form()
                     variables.current_state = variables.GameStates.MAINMENU_WAITINPUT
                 
@@ -250,8 +256,10 @@ class Main_Game:
                                 if item.text == "Add new ball(s)":
                                     self.add_balls()
                             except:
+                                # En muista
                                 pass
                     except:
+                        # En muista
                         pass
 
                             
@@ -269,7 +277,9 @@ class Main_Game:
                                 _success = True
                                 break
                     except:
+                        # Sisältää eri luokkia
                         pass
+                    
                 # Määrä field
                 if not _success:
                     for input_field in variables.edit_row_3:
@@ -281,6 +291,7 @@ class Main_Game:
                                     input_field_temp.text = "1"   
                                     input_field_temp.update_variables() 
                             except:
+                                # Sisältää eri luokkia
                                 pass
                 # Muut
 
@@ -349,6 +360,7 @@ class Main_Game:
                             pass
                         pass
                 except:
+                    # Eri luokkia
                     pass
 #####################################################################################
 
@@ -387,46 +399,75 @@ class Main_Game:
             for i, ball1 in enumerate(variables.balls):
                 for j, ball2 in enumerate(variables.balls):
                     if i > j:
-                        # Ei kato samoja kahesti
                         continue
-                    # Pallojen vekrorit
+                    
+                    # Pallojen vektorit ja säteet
                     v1 = pygame.math.Vector2(ball1.x, ball1.y)
                     v2 = pygame.math.Vector2(ball2.x, ball2.y)
-                    # Säteet
                     r1 = ball1.radius
                     r2 = ball2.radius
 
-                    # Välinen etäisyys
+                    # Etäisyys pallojen välillä
                     distance = v1.distance_to(v2)
+                    if 0 < distance < r1 + r2:
+                        # Jos pidempi kuin pallojen säteet niin normalisoi vektori
+                        _normalized_vector = (v1 - v2).normalize()
 
-                    # Jos osuu
-                    if distance < r1 + r2 and distance > 0:
-                        try:
-                            _new_vector = (v1 - v2).normalize()
-                            # Joustavuudella kertominen
+                        # Energian muutokseen, ennen törmäystä
+                        v1_initial_x, v1_initial_y = ball1.horizontal_velocity, ball1.vertical_velocity
+                        v2_initial_x, v2_initial_y = ball2.horizontal_velocity, ball2.vertical_velocity
 
-                            ball1_movement = pygame.math.Vector2(ball1.horizontal_velocity, ball1.vertical_velocity).reflect(_new_vector)
-                            ball2_movement = pygame.math.Vector2(ball2.horizontal_velocity, ball2.vertical_velocity).reflect(_new_vector)
+                        # Pallojen uudet velocityt
+                        ball1_velocity = pygame.math.Vector2(ball1.horizontal_velocity, ball1.vertical_velocity).reflect(_normalized_vector)
+                        ball2_velocity = pygame.math.Vector2(ball2.horizontal_velocity, ball2.vertical_velocity).reflect(_normalized_vector)
 
-                            ball1.horizontal_velocity, ball1.vertical_velocity = ball1_movement.x, ball1_movement.y
-                            ball2.horizontal_velocity, ball2.vertical_velocity = ball2_movement.x, ball2_movement.y
+                        # Energian muutokseen, törmäyksen jälkeen
+                        v1_final_x, v1_final_y = ball1.horizontal_velocity, ball1.vertical_velocity
+                        v2_final_x, v2_final_y = ball2.horizontal_velocity, ball2.vertical_velocity
 
-                            # ball1.vertical_velocity *= ball1.elasticity
-                            # ball1.horizontal_velocity *= ball1.elasticity
-                            # ball2.vertical_velocity *= ball2.elasticity
-                            # ball2.horizontal_velocity *= ball2.elasticity
-                            # for ball in variables.balls:
-    # if ball.hit:
-                            #ball1.hit true
-                            #ball2.hit true
-    #     ball.horizontal_velocity *= ball.elasticity
-    #     ball.vertical_velocity *= ball.elasticity
-    #     ball.hit = False
-                            
+                        # Energian jakautuminen
+                        # ball1_velocity.x -= self.energy_transfer(ball1.mass, v1_initial_x, v1_final_x, ball2.mass, v2_initial_x, v2_final_x)
+                        # ball1_velocity.y -= self.energy_transfer(ball1.mass, v1_initial_y, v1_final_y, ball2.mass, v2_initial_y, v2_final_y)
 
-                        except ValueError:
-                            print("Error normalizing vector of zero length:", ValueError)
+                        # ball2_velocity.x -= self.energy_transfer(ball2.mass, v2_initial_x, v2_final_x, ball1.mass, v1_initial_x, v1_final_x)
+                        # ball2_velocity.y -= self.energy_transfer(ball2.mass, v2_initial_y, v2_final_y, ball1.mass, v1_initial_y, v1_final_y)
+                        ball1_velocity.x -= self.energy_transfer(ball2.mass, v2_initial_x, v2_final_x, ball1.mass, v1_initial_x, v1_final_x)
+                        ball1_velocity.y -= self.energy_transfer(ball2.mass, v2_initial_y, v2_final_y, ball1.mass, v1_initial_y, v1_final_y)
 
+                        ball2_velocity.x -= self.energy_transfer(ball1.mass, v1_initial_x, v1_final_x, ball2.mass, v2_initial_x, v2_final_x)
+                        ball2_velocity.y -= self.energy_transfer(ball1.mass, v1_initial_y, v1_final_y, ball2.mass, v2_initial_y, v2_final_y)
+
+
+                        # Pallojen suhteellinen vektori
+                        relative_velocity = ball2_velocity - ball1_velocity
+                        # Suhteelliset luvut kerrotaan normalisoidun vektorin suunnilla
+                        if (relative_velocity.x * _normalized_vector.x) + (relative_velocity.y * _normalized_vector.y) > 0:
+                            # Kuinka paljon ne on päällekkäi
+                            overlap = (r1 + r2) - distance
+                            # Kuinka paljon pitää liikkua ettei olis
+                            correction = _normalized_vector * overlap
+                            # Pitää tällästä säätöö tehä ettei ne lähe leijumaa
+                            if (ball1.horizontal_velocity >= 0 and ball2.horizontal_velocity >= 0) and\
+                                    ball2.vertical_velocity != -ball2.horizontal_velocity and\
+                                        ball1.vertical_velocity != -ball1.horizontal_velocity:
+                                        #  Myös jää jumittaa kun x,y nopeudet on esim: -3, 3
+                                ball1.y += (correction.y)
+                                ball2.y -= (correction.y)
+                            # Pitää myös ilmanvastus ottaa huomioo
+                            if (ball1.vertical_velocity >= 0 + ball1.air_resistance and\
+                                 ball2.vertical_velocity >= 0 + ball2.air_resistance):
+                                ball1.x += (correction.x)
+                                ball2.x -= (correction.x)
+                            pass
+                        
+                        # Päivittää x,y nopeudet kumpaankin suuntaan
+                        _multiply = 1
+                        ball1.horizontal_velocity = _multiply * (ball1_velocity.x * ball1.elasticity)
+                        ball1.vertical_velocity = _multiply * (ball1_velocity.y * ball1.elasticity)
+
+                        ball2.horizontal_velocity = _multiply * (ball2_velocity.x * ball2.elasticity) 
+                        ball2.vertical_velocity = _multiply * (ball2_velocity.y * ball2.elasticity) 
+                         
 
         variables.CLOCK.tick(60)
 
@@ -434,9 +475,12 @@ class Main_Game:
     # Lisää uusia palloja
     def add_balls(self):
         for i in range(variables.new_ball_default_amount):
-            if variables.new_ball_default_amount >= 1:
+            # Jos enemmän kun yks niin joutuu vähän erottelee +- 1 jotta kollisio "räjäyttää" ne irti toisistaa
+            if variables.new_ball_default_amount > 1:
                 variables.new_ball_default["x"] =\
-                random.randint(variables.new_ball_default["x"]-200, variables.new_ball_default["x"]+200)
+                random.randint(variables.new_ball_default["x"]-1, variables.new_ball_default["x"]+1)
+                pass
+
             variables.balls.append(
                 Ball(
                 variables.new_ball_default["x"], variables.new_ball_default["y"], # X, Y
@@ -450,6 +494,18 @@ class Main_Game:
                 ])
                 ) # Colour
         pass
+    
+    def energy_transfer(self, m1, v1_initial, v1_final, m2, v2_initial, v2_final):
+        """
+        deltaKE = 0.5 * m1 * (v1_initial^2 - v1_final^2) + 0.5 * m2 * (v2_initial^2 - v2_final^2)
+
+        m = Pallon massat
+        v_initial = Nopeus ennen törmäystä
+        v_final = Nopeus törmäyksen jälkeen
+        deltaKE = Kineettisen energian muutos
+        """
+        deltaKE = 0.5 * m1 * ((v1_initial)**2 - (v1_final)**2) + 0.5 * m2 * ((v2_initial)**2 - (v2_final)**2)
+        return deltaKE
     pass
 
 

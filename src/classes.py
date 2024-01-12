@@ -2,7 +2,6 @@ import pygame, variables, math, random
 #
 #
 # Perus tekstinappi
-#
 class Button:
     def __init__(self, text:str, background_colour:tuple, background_colour_hover:tuple, text_colour:tuple) -> None:
         self.text = text
@@ -39,7 +38,6 @@ class Button:
 #
 #
 # Iconikuva nappi
-#
 class Icon_Button:
     def __init__(self, target:str, icon_img:pygame.image, y) -> None:
         self.target = target
@@ -103,7 +101,7 @@ class Text_Field:
         self.input_error_time = -1# Millon errori
 
         # Pituus animaatio
-        self.info_animation = 0
+        self.info_animation = 0 # Animaation substring indexi
         self.info_timer = 0
 
         self.max_input_length = max_length # Tekstikentän maksimi pituus
@@ -176,8 +174,8 @@ class Text_Field:
             #################################
             #           input 1             #
             #################################
+                # tallennetaan
                 case " Gravity":
-                    # tallennetaan
                     variables.active_data["gravity"] = float(self.text)
                     pass
                 case " Air density":
@@ -235,7 +233,7 @@ class Text_Field:
                         if float(self.text) <= 255:
                             variables.balls[variables.active_ball_index].colour[2] = float(self.text)
                         pass
-            else:
+            elif variables.active_add_new_ball:
                 ###########
                 # INPUT 3 #
                 ###########
@@ -280,6 +278,15 @@ class Text_Field:
                         pass
                     case " Amount":
                         variables.new_ball_default_amount = int(self.text)
+            # Kattoo eriksee
+            if variables.main_menu_custom_active:
+                match self.info_str:
+                    case " Planet's mass (kg)":
+                        variables.custom_planet_mass = float(self.text)
+                    case " Planet's radius (km)":
+                        variables.custom_planet_radius = float(self.text)
+
+                pass
         except:
             print("Invalid value")
         pass
@@ -307,7 +314,7 @@ class Text_Line:
         self.value = ""
         self.x = x
         self.y = y
-        self.text_animation = 0
+        self.text_animation = 0 # substring index
         self.text_timer = 0
         self.text_colour = (0, 255, 102)
         pass
@@ -365,6 +372,8 @@ class Text_Line:
                 self.value = f" {variables.gravity_experienced}"
             case " drag experienced:":
                 self.value = f" {variables.drag_experienced}"
+            case " Excepted g-forces:":
+                self.value = f" {variables.custom_planet_g}g"
         pass
 
     def construct_new_string(self, text:str, index:int, max=int):
@@ -395,6 +404,7 @@ class Radio_Button:
         self.radius_in = self.radius_out -2
         # self.colour_in = (100,100,255)
         self.colour_in = (255,0,0)
+        self.colour_in_hover = (155,0,0)
         # Sisäympyrä 2
         self.radius_in_2 = self.radius_in -4
 
@@ -414,9 +424,11 @@ class Radio_Button:
         pygame.draw.circle(variables.SCREEN,(self.colour_out), (self.x, self.y), self.radius_out)
 
         # Sisäympyrä
-        # Jos hoverattu tai aktiivinen
-        if is_hovered:
+        if self.active:
             pygame.draw.circle(variables.SCREEN,(self.colour_in), (self.x, self.y), self.radius_in)
+            pygame.draw.circle(variables.SCREEN,(self.colour_out), (self.x, self.y), self.radius_in_2)
+        elif is_hovered:
+            pygame.draw.circle(variables.SCREEN,(self.colour_in_hover), (self.x, self.y), self.radius_in)
             pygame.draw.circle(variables.SCREEN,(self.colour_out), (self.x, self.y), self.radius_in_2)
 
 
@@ -429,6 +441,7 @@ class Radio_Button:
         self.rect = pygame.Rect(self.x - self.radius_out, self.y - self.radius_out, self.radius_out * 2, self.radius_out * 2)
         pass
     def update_variables(self, case):
+        # Tuleeko variablesista "ulos" tai sinne "sisään"
         if case == "out":
             match self.text:
                 case "Zero gravity":
@@ -492,35 +505,38 @@ class Ball:
         self.rigid = rigid
         self.hit = False
         pass
+    
     def draw(self):
         # Jos pausella, ei liikuteta
         if not variables.active_pause and not self.freeze:
             self.move()
 
-
         _ball_colour = (self.colour[0], self.colour[1], self.colour[2])
+        
         # Piirretään pallo tai soikio
-        if variables.active_advanced_ball and variables.active_data["gravity"] >= 4.5 and self.rigid < 1:
-            deformation = self.gravitational_deformation()
-            y_compenstation = 0
-            # if deformation * 2 > 1.090:
-            #     deformation = 1.090
+        # Jos advanced päällä sekä rigid yli 1
+        if variables.active_advanced_ball and self.rigid < 1:
+            self.deformation = self.gravitational_deformation()
+            if self.deformation > 1: # Jos menee yli yhen niin pallo on korkeempi kun leveempi
+                self.deformation = 1
+            y_compenstation = self.radius * self.deformation * 2 - self.radius # Paljon y:ssä pitää mennä alaspäin että pallon näyttää olevan maan tasalla
 
-            pygame.draw.ellipse(variables.SCREEN, _ball_colour, (self.x, self.y - y_compenstation, 2 * self.radius, deformation * 2))
+            # Soikio piirretään. x=keskikohta
+            pygame.draw.ellipse(variables.SCREEN, _ball_colour, (self.x - self.radius, self.y - y_compenstation, 2 * self.radius, self.radius * self.deformation * 2))
         else:
+            # Pelkkä pallo piirretään
             pygame.draw.circle(variables.SCREEN, _ball_colour, (self.x, self.y), self.radius)
-
         pass
+
     def move(self) -> None:
-        # 3d
+        # 3d, pallo
         if variables.active_advanced_ball:
             self.drag_coefficient = 0.47 # Pallon ilmanvastuskerroin
-        #2d
+        #2d, ympyrä
         else:
             self.drag_coefficient = 1.17 # Ympyrän ilmanvastuskerroin
         # Pinta-ala
         self.area = (math.pi*self.radius**2)
-
 
         # Nopeus lisätään x- ja y-akseleihin        
         self.y += self.vertical_velocity * variables.deltatime
@@ -537,8 +553,6 @@ class Ball:
             Fwind=0.5*Cd*A*ρ*v^2
 
             Awind = Fwind / m
-
-
 
             ratio = (Aoriginal - Vwind) / v
 
@@ -561,8 +575,8 @@ class Ball:
             """
             Owind = variables.active_data["wind_direction"]
             Vwind = variables.active_data["wind_speed"] * 25 # Toimii jostai syystä vaan kun on * 10-100
-            Vwind_x = Vwind * math.cos(math.radians(Owind - 90))
-            Vwind_y = Vwind * math.sin(math.radians(Owind - 90))
+            Vwind_x = Vwind * math.cos(math.radians(Owind-90)) # Heittää oudosti
+            Vwind_y = Vwind * math.sin(math.radians(Owind+90)) # Heittää oudosti
 
             Vobject_x = self.horizontal_velocity
             Vobject_y = self.vertical_velocity
@@ -571,14 +585,15 @@ class Ball:
             try:
                 v = math.sqrt((Vobject_x - Vwind_x)**2 + (Vobject_y - Vwind_y)**2)
             except:
+                v = 1
                 pass
 
             Fwind = 0.5 * self.drag_coefficient * self.area * variables.active_data["air_density"] * v**2
 
-            Awind = Fwind / (self.mass * 1000)  # Kiloina
+            Awind = Fwind / (self.mass * 5000)  # Kiloina
 
             # Tuulen vaikutus
-            wind_influence = 0.00001 # Ei toimi muute
+            wind_influence = 0.00001 # Ei toimi ilman tätä.
 
             ratio_x = (Vobject_x - Vwind_x) / v
             ratio_y = (Vobject_y - Vwind_y) / v
@@ -586,6 +601,7 @@ class Ball:
             self.horizontal_velocity += ratio_x * Awind * wind_influence
             self.vertical_velocity -= ratio_y * Awind * wind_influence
 
+            # Paljon tuulta pallo saa yhteensä
             variables.wind_experienced = (ratio_x * Awind * wind_influence) + (ratio_y * Awind * wind_influence)
             pass
 
@@ -598,6 +614,7 @@ class Ball:
             # Nopeus kääntyy ja se kerrotaan pallon joustavuudella
             self.vertical_velocity = -(self.vertical_velocity * self.elasticity)
             pass
+        
         # X-akseli pomppaus, oikea ja vasen
         # Paneeli päällä, oikea
         # Paneeli pois päältä, oikea
@@ -618,6 +635,7 @@ class Ball:
             
         # Lisätään painovoiman ja ilmanvastuksen vaikutus
         _velocity_gravitational_effect = 0
+        self.gravitational_acceleration = 0
         if not variables.active_zero_g:
             """
             newtonin painovoimalaki
@@ -650,8 +668,10 @@ class Ball:
 
         # Lisätään ilman vastus
         variables.drag_experienced = 0
+        self.air_resistance = 0
         if variables.active_air_resistance:
             drag = self.gravitation_drag()
+            self.air_resistance = drag
             variables.drag_experienced += drag
             _velocity_gravitational_effect -= drag
             # _velocity_gravitational_effect *= variables.deltatime
@@ -693,7 +713,12 @@ class Ball:
             a=m/F_net
         """
         # Voiman vastus
-        f_drag = ((1/2) * variables.active_data["air_density"] * self.drag_coefficient * self.area) * (self.vertical_velocity**2)
+        f_drag = 0
+        try:
+            f_drag = ((1/2) * variables.active_data["air_density"] * self.drag_coefficient * self.area) * (self.vertical_velocity**2)
+        except:
+            # Liian iso luku
+            f_drag = 1
         # return f_drag / self.mass # ?
         # Painovoiman voima | N
         # f_gravity = (self.mass / 1000) * variables.active_data["gravity"]
@@ -705,28 +730,18 @@ class Ball:
         # Painovoiman tuottama kiihtyminen ilmanvastus mukaan lukien
         a = self.mass / f_net
         return a * variables.deltatime
-    #TODO
+    
     def gravitational_deformation(self)->float:
         _total_mass_on_top = 0
-        v1 = pygame.math.Vector2(self.x, self.y)
-        # Säteet
-        r1 = self.radius
-
         # Välinen etäisyys
         for ball in variables.balls:
-            if not ball.x == self.x and not ball.y == self.y:
-                # Jos ei sama pallo niin jatkaa
-                continue
-            # Katotaan onko pallo yläällä ja osuuko se
-            v2 = pygame.math.Vector2(ball.x, ball.y)
-            r2 = ball.radius
-            distance = v1.distance_to(v2)
-            if ball.x-ball.radius <= self.x <= ball.x + ball.radius\
-            and distance < r1 + r2 and distance > 0:
-                _total_mass_on_top += ball.mass
+            if not ball == self:
+                # Katotaan onko pallo yläällä ja osuuko se
+                if ball.x-ball.radius <= self.x <= ball.x + ball.radius and self.y > ball.y:
+                    _total_mass_on_top += ball.mass
         """
         Hooken laki:
-            δ=km/(g+M)
+            δ = k * m / (g + M)
 
             δ = Epämuodostuminen
             k = Jäykkyys
@@ -737,10 +752,14 @@ class Ball:
         Soikion epämuodostuma leveydellään = (säde * epämuodostuma) * 2
         """
         try:
-            delta = (self.rigid * self.mass) / (variables.active_data["gravity"] + _total_mass_on_top)
-            print(f'{self.rigid} * {self.mass} / {variables.active_data["gravity"] } = {delta} * {self.radius} | {delta*self.rigid * 2}')
+
+            other_masses = (_total_mass_on_top * 2)
+            if not variables.active_zero_g: # ei painovoimaa, niin se ei voi vaikuttaa 
+                other_masses += self.gravitational_acceleration
+
+            delta = (self.rigid * (self.mass * 10 * self.rigid)) / (other_masses) # Kerrottu kahella niin vaikutuksen näkeeki
             
-            return delta * self.rigid
+            return delta / self.rigid
         except:
             # Jos painovoima on nolla niin crashaa
             return self.radius
@@ -763,7 +782,7 @@ class Secondary_Panel:
 
         # Radionapit
         variables.radio_buttons = []
-        _multiply = 1
+        _multiply = 1 # Y-akselin kerroin jolla saadaan kaikki hienosti allekkain
         variables.radio_buttons.append(Radio_Button("Zero gravity", self.x + 15, self.y + 10*_multiply)) 
         _multiply += 3
         variables.radio_buttons.append(Radio_Button("Air resistance", self.x + 15, self.y + 10*_multiply)) 
@@ -835,7 +854,7 @@ class Secondary_Panel:
         variables.button_row_2.append(Radio_Button("Freeze", 0, 0))
         variables.button_row_2.append(Button("Throw", (150,150,150), (100,100,100), (0,255,102)))
 
-##############################################
+        ##############################################
         # Lisää uusi pallo
         # Editoi entisen pallon tietoja
         variables.input_fields_3 = []
@@ -921,7 +940,6 @@ class Secondary_Panel:
             is_hovered = button.rect.collidepoint(variables.mouse[0], variables.mouse[1])
 
             # Aktivointiväri ja reuna vihreeksi
-            #0, 255, 102
             if variables.active_add_new_ball and button.text == "Add new ball":
                 pygame.draw.rect(variables.SCREEN, (0, 255, 102), button.rect, 2)
                 is_hovered = True
@@ -952,6 +970,7 @@ class Secondary_Panel:
                     if item.info_str == " Amount":
                         item.draw()
                 except:
+                    # Pitää laittaa koska tää lista sisältää kahta eri luokkaa joilla on eri muuttujia
                     pass
                 # Nappi
                 try:
@@ -961,6 +980,7 @@ class Secondary_Panel:
                         is_hovered = item.rect.collidepoint(variables.mouse[0], variables.mouse[1])
                         item.draw(is_hovered)
                 except:
+                    # Pitää laittaa koska tää lista sisältää kahta eri luokkaa joilla on eri muuttujia
                     pass
             pass
         elif variables.active_edit_current_ball:
