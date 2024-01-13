@@ -125,10 +125,15 @@ drag_experienced = None
 
 # Nappien ja muitten resetointi
 def reset_form():
-    global active_advanced_ball, active_air_resistance, active_ground_friction, active_wind_resistance, active_ceiling, active_zero_g
+    global SCREEN, screen_dict, active_secondary_panel, active_advanced_ball, active_air_resistance, active_ground_friction, active_wind_resistance, active_ceiling, active_zero_g
     active_air_resistance = True
     active_ground_friction = True
     active_wind_resistance = True
     active_ceiling = True
     active_advanced_ball = False
     active_zero_g = False
+    if active_secondary_panel:
+        screen_dict["width"] -= secondary_panel_width
+        active_secondary_panel = False
+
+    SCREEN = pygame.display.set_mode((screen_dict["width"], screen_dict["height"]), pygame.DOUBLEBUF | pygame.HWACCEL | pygame.SRCALPHA)

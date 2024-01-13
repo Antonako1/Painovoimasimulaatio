@@ -1,7 +1,10 @@
 import pygame
 import sys
 import variables
-from classes import Button, Icon_Button, Text_Field, Text_Line
+from classes.button import Button
+from classes.icon_button import Icon_Button
+from classes.text_field import Text_Field
+from classes.text_line import Text_Line
 from planet_data import custom
 
 class Main_Menu:
@@ -39,7 +42,7 @@ class Main_Menu:
         self.custom_fields.append(Text_Field(" Planet's radius (km)", self.custom_data["radius"], self.custom_x, self.custom_y+50, 100, 25, 10))
         variables.custom_planet_mass = self.custom_data["mass"]
         variables.custom_planet_radius = self.custom_data["radius"]
-        self.text_line = Text_Line(" Excepted g-forces:", self.custom_x - 14, self.custom_y + 75)
+        self.text_line = Text_Line(" Expected g-forces:", self.custom_x - 14, self.custom_y + 75)
         # Sekunteihin
         self.seconds = 0
         self.start_ticks = pygame.time.get_ticks()
