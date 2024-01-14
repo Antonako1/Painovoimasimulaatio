@@ -60,7 +60,6 @@ class Main_Game:
         if variables.active_secondary_panel:
             variables.secondary_panel.draw()
 
-
         # Jos peli on pausella, se ei mee tästä eteenpäin
         # Paneelia voi silti käyttää ja pallojen tietoja muokata
         if variables.active_pause:

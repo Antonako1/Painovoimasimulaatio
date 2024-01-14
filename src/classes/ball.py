@@ -29,6 +29,7 @@ class Ball:
             self.move()
 
         _ball_colour = (self.colour[0], self.colour[1], self.colour[2])
+        _active_colour = ( 255 if self.colour[0] < 100 else 0, 255 if self.colour[1] < 0 else 0, 255 if self.colour[2] < 100 else 0)
         
         # Piirretään pallo tai soikio
         # Jos advanced päällä sekä rigid yli 1
@@ -38,10 +39,18 @@ class Ball:
                 self.deformation = 1
             y_compenstation = self.radius * self.deformation * 2 - self.radius # Paljon y:ssä pitää mennä alaspäin että pallon näyttää olevan maan tasalla
 
+            if variables.balls[variables.active_ball_index] == self:
+                pygame.draw.ellipse(variables.SCREEN, _active_colour, (self.x - self.radius - 2, self.y - y_compenstation - 2,   2 * self.radius + 2, 4 + self.radius * self.deformation * 2))
+                pass
             # Soikio piirretään. x=keskikohta
             pygame.draw.ellipse(variables.SCREEN, _ball_colour, (self.x - self.radius, self.y - y_compenstation, 2 * self.radius, self.radius * self.deformation * 2))
+            # Raja ulkopuolelle
+                
         else:
             # Pelkkä pallo piirretään
+            # Raja ulkopuolelle
+            if variables.balls[variables.active_ball_index] == self:
+                pygame.draw.circle(variables.SCREEN, _active_colour, (self.x, self.y), self.radius + 2)
             pygame.draw.circle(variables.SCREEN, _ball_colour, (self.x, self.y), self.radius)
         pass
 
@@ -277,7 +286,7 @@ class Ball:
 
             delta = (self.rigid * (self.mass * 10 * self.rigid)) / (other_masses)
             
-            return delta / self.rigid
+            return (delta / self.rigid)
         except:
             # Jos painovoima on nolla niin crashaa
             return self.radius
