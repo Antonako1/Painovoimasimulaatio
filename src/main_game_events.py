@@ -85,13 +85,17 @@ def handle_events(self):
                     # Resetoi muut
                     for input_field_temp in variables.input_fields_1:
                         input_field_temp.active = False
-                        if input_field_temp.info_str == " Air density" and (input_field_temp.text == "" or float(input_field_temp.text) <= 0.000001):
-                            # Ilman tiheys ei voi olla nolla
-                            input_field_temp.text = "0.00001"
-                            input_field_temp.update_variables()
-                        elif input_field_temp.text == "":
-                            input_field_temp.text = "0"   
-                            input_field_temp.update_variables()             
+                        try:
+                            if input_field_temp.info_str == " Air density" and (input_field_temp.text == "" or float(input_field_temp.text) <= 0.000001):
+                                # Ilman tiheys ei voi olla nolla
+                                input_field_temp.text = "0.00001"
+                                input_field_temp.update_variables()
+                            elif input_field_temp.text == "":
+                                input_field_temp.text = "0"   
+                                input_field_temp.update_variables()             
+                        except:
+                            #ValueError: could not convert string to float
+                            pass
 
         for input_field in variables.input_fields_1:
             # Näppäimien paineluun
